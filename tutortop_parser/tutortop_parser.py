@@ -5,7 +5,7 @@ from typing import Dict, List
 
 from bs4 import BeautifulSoup
 
-from base_func.http_requests import fetch_html
+from base_func.http_requests import fetch_html, send_parse_data
 from settings.logger_settings import logger
 
 
@@ -30,53 +30,36 @@ def load_courses_data_by_category_url(url: str, course_category: str) -> List:
 
 
 @logger.catch
-def fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_category: str) -> List:
+def fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_category: str) -> None:
     """ функция собирает данные о платных курсах в категории """
-    all_paid_couses_in_category = []
     courses_table = courses_page_soup_data.select('.tab-course-paid .tab-course-item')
     for course_item in courses_table:
-        school = course_item['data-school']
-        course_title = course_item.select_one('.m-course-title').get_text().strip()
-        course_price = course_item['data-price']
-        course_start_date = _render_course_start_date(course_item)
-        course_duration = f"{course_item['data-dlitelnost']} мес."
-        course_link = _find_course_url(course_item)
-        all_paid_couses_in_category.append([
-            course_category,
-            course_title,
-            school,
-            course_price,
-            course_start_date,
-            course_duration,
-            course_link
-        ])
-    return all_paid_couses_in_category
+        course_data = {
+            "school": course_item['data-school'],
+            "course_title": course_item.select_one('.m-course-title').get_text().strip(),
+            "course_price": course_item['data-price'],
+            "course_start_date": _render_course_start_date(course_item),
+            "course_duration": float(course_item['data-dlitelnost']),
+            "course_link": _find_course_url(course_item),
+        }
+        send_parse_data(course_data)
 
 
 @logger.catch
 def fetch_all_free_courses_data_by_category(courses_page_soup_data, course_category: str) -> List:
     """ функция собирает данные о бесплатных курсах в категории """
-    all_free_couses_in_category = []
     courses_table = courses_page_soup_data.select('.tab-free-course .tab-course-item')
     for course_item in courses_table:
-        school = course_item['data-school']
-        course_title = course_item.select_one('.m-course-title').get_text().strip()
-        course_price = None
-        course_start_date = None
-        course_duration = f"{course_item['data-dlitelnost']} зан."
-        course_link = _find_course_url(course_item)
-        course_format = course_item.select_one('.tab-course-col-format_obucheniy').get_text().strip()
-        all_free_couses_in_category.append([
-            course_category,
-            course_title,
-            school,
-            course_price,
-            course_start_date,
-            course_duration,
-            course_link,
-            course_format,
-        ])
-    return all_free_couses_in_category
+        course_data = {
+            "school": course_item['data-school'],
+            "course_title": course_item.select_one('.m-course-title').get_text().strip(),
+            "course_price": None,
+            "course_start_date": None,
+            "course_duration": f"{course_item['data-dlitelnost']} зан.",
+            "course_link": _find_course_url(course_item),
+            "course_format": course_item.select_one('.tab-course-col-format_obucheniy').get_text().strip(),
+        }
+        send_parse_data(course_data)
 
 
 @logger.catch

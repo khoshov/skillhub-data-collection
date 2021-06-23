@@ -11,6 +11,8 @@ loguru = "^0.5.3"
 beautifulsoup4 = "^4.9.3"
 requests-random-user-agent = "^2021.5.29"
 lxml = "^4.6.3"
+celery = {extras = ["redis"], version = "^5.1.1"}
+python-dotenv = "^0.18.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"
