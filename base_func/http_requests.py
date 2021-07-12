@@ -3,11 +3,10 @@ import os
 from typing import Dict
 
 import requests
-import requests_random_user_agent  # автоматически подставляет случайный user-agents, нужен только импорт
+import requests_random_user_agent  # noqa
 from dotenv import load_dotenv
 
 from settings.logger_settings import logger
-
 
 load_dotenv()
 
@@ -34,14 +33,14 @@ def send_parse_data(course_data: Dict):
 
     headers = {
         'Accept': 'application/json',
-        'Content-Type': 'application/json_co; charset=UTF-8',
+        'Content-Type': 'application/json; charset=UTF-8',
         'Accept-Encoding': 'deflate',
     }
 
     data = json.dumps(course_data, ensure_ascii=False).encode('utf-8')
     try:
         result = requests.post(os.getenv("DJANGO_SERVER_URL"), headers=headers, data=data)
-        if result.status_code == 200:
+        if result.status_code == 201:
             logger.info(f"Данные {course_data.get('course_title')} успешно направлены")
         else:
             logger.error(f'При направлении данных возникла ошибка: {result.status_code}')
