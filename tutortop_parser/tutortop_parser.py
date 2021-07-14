@@ -36,27 +36,29 @@ def fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_categ
     for course_item in courses_table:
         course_data = {
             "school": course_item['data-school'],
-            "course_title": course_item.select_one('.m-course-title').get_text().strip(),
-            "course_price": course_item['data-price'],
-            "course_start_date": _render_course_start_date(course_item),
-            "course_duration": float(course_item['data-dlitelnost']),
-            "course_link": _find_course_url(course_item),
+            "category": course_category,
+            "title": course_item.select_one('.m-course-title').get_text().strip(),
+            "price": course_item['data-price'],
+            "start_date": _render_course_start_date(course_item),
+            "duration": float(course_item['data-dlitelnost']),
+            "url": _find_course_url(course_item),
         }
         send_parse_data(course_data)
 
 
 @logger.catch
-def fetch_all_free_courses_data_by_category(courses_page_soup_data, course_category: str) -> List:
+def fetch_all_free_courses_data_by_category(courses_page_soup_data, course_category: str) -> None:
     """ функция собирает данные о бесплатных курсах в категории """
     courses_table = courses_page_soup_data.select('.tab-free-course .tab-course-item')
     for course_item in courses_table:
         course_data = {
             "school": course_item['data-school'],
-            "course_title": course_item.select_one('.m-course-title').get_text().strip(),
-            "course_price": None,
-            "course_start_date": None,
-            "course_duration": f"{course_item['data-dlitelnost']} зан.",
-            "course_link": _find_course_url(course_item),
+            "category": course_category,
+            "title": course_item.select_one('.m-course-title').get_text().strip(),
+            "price": None,
+            "start_date": None,
+            "duration": f"{course_item['data-dlitelnost']} зан.",
+            "url": _find_course_url(course_item),
             "course_format": course_item.select_one('.tab-course-col-format_obucheniy').get_text().strip(),
         }
         send_parse_data(course_data)

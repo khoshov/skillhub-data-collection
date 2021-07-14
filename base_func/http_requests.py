@@ -29,10 +29,11 @@ def fetch_html(url: str) -> str:
 
 
 @logger.catch
-def send_parse_data(course_data: Dict):
+def send_parse_data(course_data: Dict) -> None:
     """ функция направляет данные о курсе на Django сервер """
 
     headers = {
+        'Api-Key': os.getenv("SKILLHUB_API_KEY"),
         'Accept': 'application/json',
         'Content-Type': 'application/json_co; charset=UTF-8',
         'Accept-Encoding': 'deflate',
@@ -46,4 +47,4 @@ def send_parse_data(course_data: Dict):
         else:
             logger.error(f'При направлении данных возникла ошибка: {result.status_code}')
     except requests.RequestException as e:
-        return logger.error(f'Отсутствует доступ к API: {e}')
+        logger.error(f'Отсутствует доступ к API: {e}')
