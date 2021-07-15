@@ -32,7 +32,6 @@ def send_parse_data(course_data: Dict) -> None:
     """ функция направляет данные о курсе на Django сервер """
 
     headers = {
-        'Api-Key': os.getenv("SKILLHUB_API_KEY"),
         'Accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept-Encoding': 'deflate',
