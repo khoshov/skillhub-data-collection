@@ -36,6 +36,7 @@ def send_parse_data(course_data: Dict) -> None:
         'Accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept-Encoding': 'deflate',
+        'Authorization': f'Api-Key {os.getenv("DJANGO_SERVER_API_KEY")}'
     }
 
     data = json.dumps(course_data, ensure_ascii=False).encode('utf-8')
