@@ -8,6 +8,9 @@ from bs4 import BeautifulSoup
 from base_func.http_requests import fetch_html, send_parse_data
 from settings.logger_settings import logger
 
+MONTH = 1
+LESSON = 2
+
 
 @logger.catch
 def load_main_page_course_links(home_page_url: str) -> Dict:
@@ -36,12 +39,13 @@ def fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_categ
     for course_item in courses_table:
         course_data = {
             "school": course_item['data-school'],
-            "category": course_category,
-            "title": course_item.select_one('.m-course-title').get_text().strip(),
-            "price": course_item['data-price'],
-            "start_date": _render_course_start_date(course_item),
-            "duration": float(course_item['data-dlitelnost']),
-            "url": _find_course_url(course_item),
+            "course_category": course_category,
+            "course_title": course_item.select_one('.m-course-title').get_text().strip(),
+            "course_price": course_item['data-price'],
+            "course_start_date": _render_course_start_date(course_item),
+            "course_duration": float(course_item['data-dlitelnost']),
+            "course_duration_type": MONTH,
+            "course_link": _find_course_url(course_item),
         }
         send_parse_data(course_data)
 
@@ -53,12 +57,13 @@ def fetch_all_free_courses_data_by_category(courses_page_soup_data, course_categ
     for course_item in courses_table:
         course_data = {
             "school": course_item['data-school'],
-            "category": course_category,
-            "title": course_item.select_one('.m-course-title').get_text().strip(),
-            "price": None,
-            "start_date": None,
-            "duration": f"{course_item['data-dlitelnost']} зан.",
-            "url": _find_course_url(course_item),
+            "course_category": course_category,
+            "course_title": course_item.select_one('.m-course-title').get_text().strip(),
+            "course_price": None,
+            "course_start_date": None,
+            "course_duration": f"{course_item['data-dlitelnost']}",
+            "course_duration_type": LESSON,
+            "course_link": _find_course_url(course_item),
             "course_format": course_item.select_one('.tab-course-col-format_obucheniy').get_text().strip(),
         }
         send_parse_data(course_data)
