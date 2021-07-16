@@ -24,12 +24,12 @@ def load_main_page_course_links(home_page_url: str) -> Dict:
 
 
 @logger.catch
-def load_courses_data_by_category_url(url: str, course_category: str) -> List:
-    """ функция объединяет данные парсинга о платных и бесплатных курсах в категории """
+def load_courses_data_by_category_url(url: str, course_category: str) -> None:
+    """ функция собирает дынные о платных и бесплатных курсах в категории """
     courses_page_soup_data = BeautifulSoup(fetch_html(url), 'lxml')
-    courses_data_by_category = fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_category) + (
-        fetch_all_free_courses_data_by_category(courses_page_soup_data, course_category))
-    return courses_data_by_category
+    fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_category)
+    fetch_all_free_courses_data_by_category(courses_page_soup_data, course_category)
+
 
 
 @logger.catch
