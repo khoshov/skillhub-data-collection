@@ -19,4 +19,3 @@ def run_tutortop_parser():
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(crontab(minute=0, hour=5, day_of_week=1), run_tutortop_parser.s())
-    sender.add_periodic_task(crontab(minute='*/5'), run_tutortop_parser.s())
