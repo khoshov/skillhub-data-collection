@@ -15,11 +15,16 @@ load_dotenv()
 def fetch_html(url: str) -> str:
     """ функция получения данных с html страницы """
     try:
-        result = requests.get(url, timeout=10)
+        proxies = {
+            "http": "http://skrishchuns:S3d3UtZ@46.16.13.121:65233"
+        }
+        result = requests.get(url, proxies=proxies, timeout=10)
         if result.status_code == 200:
             logger.info(f"парсинг ссылки {url}")
             return result.text
         else:
+            print(result.status_code)
+            print(result.text)
             logger.error(f'Ссылка {url} недоступна, status code {result.status_code}')
             return None
     except(requests.RequestException):

@@ -180,6 +180,8 @@ Thumbs.db
 # profiling data
 .prof
 
+### PyCharm ###
+.idea/
 
 ### VisualStudioCode ###
 .vscode/
