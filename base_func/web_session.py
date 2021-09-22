@@ -17,7 +17,7 @@ def start_browser():
     options.add_argument(f'user-agent={ua.firefox}')
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--disable-gpu")
-    # options.add_argument('--headless')  # фоновый режим
+    options.add_argument('--headless')  # фоновый режим
     options.page_load_strategy = 'eager'  # ожидание основной загрузки страницы
     options.add_argument("--disable-extensions")
     options.add_argument("--no-sandbox")
@@ -36,7 +36,7 @@ def start_browser():
     }
 
     browser = webdriver.Chrome(
-        '/Users/gump85/Documents/python_work/skillhub_parsers/chromedriver',
+        '/home/skillhub_parsers/chromedriver',
         seleniumwire_options=proxy_options,
         options=options
     )

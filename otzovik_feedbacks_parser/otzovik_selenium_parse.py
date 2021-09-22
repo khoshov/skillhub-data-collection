@@ -38,23 +38,22 @@ def find_school_feedbacks_url(browser, url: str):
 
 
 def collect_school_feedbacks_url(browser, url) -> List:
-    """ Переход на ссылку с отзывами о курсе """
+    """ Парсинг ссылок на отзывы о школе и ссылки на следующую страницу с отзывами """
     browser.get(url)
     feedbacks_urls = browser.find_elements_by_css_selector(".review-title")
     school_feedbacks_url_list = [
         item.get_attribute('href') for item in feedbacks_urls
     ]
+    # ищем на странице ссылку на следующую страницу, если ее нет, то это последняя страница
     try:
         next_page = browser.find_element_by_css_selector('a.next').get_attribute('href')
     except NoSuchElementException:
         next_page = None
-    logger.info(f"Список ссылок на отзывы {school_feedbacks_url_list}")
-    logger.info(f"Слудующая страница {next_page}")
     return school_feedbacks_url_list, next_page
 
 
 def fetch_feedback_data(browser, url: str, school_name: str) -> Dict:
-    """получили данные с отзывами по конкретной ccылке"""
+    """ Сбор и обработка данных отзыва """
     browser.get(url)
     feedback_plus = browser.find_element_by_css_selector(".review-plus").text
     feedback_minus = browser.find_element_by_css_selector(".review-minus").text
@@ -76,7 +75,7 @@ def fetch_feedback_data(browser, url: str, school_name: str) -> Dict:
 
 
 def parse_school_feedbacks(school: Dict):
-    """ парсинг отзывов о школе и направление обработанных результатов во внешнее API"""
+    """ Парсинг отзывов о школе и направление обработанных данных API SkillHub """
     school_name = school.get('name')
     try:
         browser = start_browser()
