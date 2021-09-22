@@ -2,6 +2,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,visualstudiocode,python
 
+### my work files
+demo.py
+geekbrains_parser/
+*.csv
+./otzovik_parser.py
+
 ### macOS ###
 # General
 .DS_Store
@@ -195,8 +201,3 @@ Thumbs.db
 # Ignore all local history of files
 .history
 .ionide
-
-### my work files
-test_start.py
-geekbrains_parser/
-*.csv

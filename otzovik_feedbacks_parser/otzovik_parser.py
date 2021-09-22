@@ -1,9 +1,11 @@
 import csv
+from time import sleep
 from typing import List, Dict
 
 from bs4 import BeautifulSoup
 
 from base_func.http_requests import fetch_html, send_parse_data
+from base_func.utils import convert_to_date
 
 
 SCHOOL = "geekbrains.ru"
@@ -11,7 +13,7 @@ SCHOOL = "geekbrains.ru"
 
 def find_school_feedback_urls(url: str) -> BeautifulSoup:
     """получаем данные поискового get-запроса на главную страницу отзовик.ру"""
-    search_request = fetch_html(url)
+    search_request = fetch_html(url).text
     return BeautifulSoup(search_request, 'lxml')
 
 
@@ -28,7 +30,7 @@ def choose_most_popular_url(search_page_soup_data: BeautifulSoup) -> str:
 
 def collect_school_feedbacks_url(most_popular_feedbacks_url: str) -> List:
     """переход на ссылку с отзывами о курсе"""
-    school_feedbacks_page = fetch_html(most_popular_feedbacks_url)
+    school_feedbacks_page = fetch_html(most_popular_feedbacks_url).text
     school_page_soup_data = BeautifulSoup(school_feedbacks_page, 'lxml')
     # ищем ссылки непосредственно на отзывы
     school_feedbacks_url_list = [
@@ -44,7 +46,7 @@ def collect_school_feedbacks_url(most_popular_feedbacks_url: str) -> List:
 
 def fetch_feedback_data(url: str) -> Dict:
     """получили данные с отзывами по конкретной ccылке"""
-    feedback_page = fetch_html(url)
+    feedback_page = fetch_html(url).text
     feedback_page_soup_data = BeautifulSoup(feedback_page, 'lxml')
     feedback_plus = feedback_page_soup_data.select_one(".review-plus").get_text()
     feedback_minus = feedback_page_soup_data.select_one(".review-minus").get_text()
@@ -58,7 +60,7 @@ def fetch_feedback_data(url: str) -> Dict:
         'feedback_plus': feedback_plus,
         'feedback_minus': feedback_minus,
         'feedback_description': feedback_description,
-        'feedback_date': feedback_date,
+        'feedback_date': convert_to_date(feedback_date),
     }
     return feedback_data
 
@@ -68,6 +70,7 @@ def run_feedbacks_parser(query: str = "geekbrains.ru"):
     url_search = f"https://otzovik.com/?search_text={query}&x=0&y=0"
     """формируем ссылку"""
     next_page = choose_most_popular_url(find_school_feedback_urls(url_search))
+    sleep(5)
     all_feedbacks = []
     with open('feedbacks_data.csv', 'a', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter='|')
@@ -83,10 +86,12 @@ def run_feedbacks_parser(query: str = "geekbrains.ru"):
         writer.writerow(head)
         while next_page:
             school_feedbacks_url_list, next_page = collect_school_feedbacks_url(next_page)
+            sleep(5)
             all_feedbacks += school_feedbacks_url_list
             for url in school_feedbacks_url_list:
                 data = fetch_feedback_data(url)
                 writer.writerow(data.values())
+                sleep(5)
     # for feedback in all_feedbacks:
     #     send_parse_data(fetch_feedback_data(feedback))
 

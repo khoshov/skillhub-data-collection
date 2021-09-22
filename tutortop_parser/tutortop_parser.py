@@ -16,7 +16,7 @@ LESSON = 2
 def load_main_page_course_links(home_page_url: str) -> Dict:
     """ фунция собирает ссылки на разделы с курсами с главной страницы """
     courses_links = {}
-    houme_page_soup_data = BeautifulSoup(fetch_html(home_page_url), 'lxml')
+    houme_page_soup_data = BeautifulSoup(fetch_html(home_page_url).text, 'lxml')
     courses_catalog = houme_page_soup_data.select(".submenu__wrap__mark")[0].select("a")
     for item in courses_catalog[1:]:
         courses_links[item.get_text()] = item['href']
@@ -26,10 +26,9 @@ def load_main_page_course_links(home_page_url: str) -> Dict:
 @logger.catch
 def load_courses_data_by_category_url(url: str, course_category: str) -> None:
     """ функция собирает дынные о платных и бесплатных курсах в категории """
-    courses_page_soup_data = BeautifulSoup(fetch_html(url), 'lxml')
+    courses_page_soup_data = BeautifulSoup(fetch_html(url).text, 'lxml')
     fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_category)
     fetch_all_free_courses_data_by_category(courses_page_soup_data, course_category)
-
 
 
 @logger.catch
@@ -73,7 +72,7 @@ def fetch_all_free_courses_data_by_category(courses_page_soup_data, course_categ
 def _find_course_url(course_row_data: str) -> str:
     """ Функция поиска ссылки на курс из генератора аффилированной ссылки """
     course_referal_url = course_row_data.select_one('a.tab-link-course')['href']
-    course_referal_url_generator = fetch_html(course_referal_url)
+    course_referal_url_generator = fetch_html(course_referal_url).text
     re_patterns = [r"\?dl=(.+?)(';|#|\?ref|&subid)", r"ulp=(.+)';", r"href\s=\s'(.+?)(\?unit|'|\?utm|\?ref)"]
     for pattern in re_patterns:
         if re.search(pattern, course_referal_url_generator):
