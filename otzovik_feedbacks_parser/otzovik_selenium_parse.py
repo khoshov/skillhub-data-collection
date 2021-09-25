@@ -10,6 +10,9 @@ from base_func.utils import convert_to_date
 from settings.logger_settings import logger
 
 
+BAD_SCHOOL_NAMES = ('Курсы с Youtub', 'test')
+
+
 def get_schools_list() -> Optional[Dict]:
     """ Получаем список школ и дату последенго отзыва, записанного в базе """
     response = fetch_html(os.getenv('SKILLHUB_GET_SCHOOLS')).json()
@@ -31,7 +34,6 @@ def find_school_feedbacks_url(browser, url: str):
     search_result = browser.find_elements_by_css_selector('.item.sortable')
     for element in search_result:
         if element.get_attribute('data-reviews') != '0':
-            logger.info(element)
             url = element.find_element_by_css_selector('a.product-name').get_attribute('href')
             url = url + '?order=date_desc'  # добавляем сортировку по дате
             return url
@@ -104,9 +106,10 @@ def run_feedbacks_parser():
     if schools_data:
         logger.info('Парсер отзывов с otzovik.com начала работу')
         for school in schools_data:
-            logger.info(f'Начат сбор отзывов с otzovik.com о школе {school.get("name")}')
-            parse_school_feedbacks(school)
-            logger.info(f'Завершен сбор отзывов с otzovik.com о школе {school.get("name")}')
+            if school.get("name") not in BAD_SCHOOL_NAMES:
+                logger.info(f'Начат сбор отзывов с otzovik.com о школе {school.get("name")}')
+                parse_school_feedbacks(school)
+                logger.info(f'Завершен сбор отзывов с otzovik.com о школе {school.get("name")}')
         logger.info('Парсер отзывов с otzovik.com закончил работу')
     else:
         logger.error('Не удалось получить список школ из API SkillHub. Парсер отзывов не был запущен')

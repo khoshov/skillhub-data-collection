@@ -41,6 +41,6 @@ def start_browser():
         options=options
     )
     browser.implicitly_wait(5)
-    browser.set_page_load_timeout(60)
+    browser.set_page_load_timeout(90)
 
     return browser
