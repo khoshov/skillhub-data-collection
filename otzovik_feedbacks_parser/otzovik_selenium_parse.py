@@ -1,8 +1,9 @@
 import os
+from posixpath import dirname
 from time import sleep
 from typing import List, Dict, Optional
 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 from base_func.http_requests import send_feedbacks_data, fetch_html
 from base_func.web_session import start_browser
@@ -89,10 +90,17 @@ def parse_school_feedbacks(school: Dict):
             sleep(10)
             for url in school_feedbacks_url_list:
                 if url == school.get('latest_review_url'):
+                    next_page = ''
                     break
-                data = fetch_feedback_data(browser, url, school_name)
-                send_feedbacks_data(data)
-                sleep(15)
+                try:
+                    data = fetch_feedback_data(browser, url, school_name)
+                    send_feedbacks_data(data)
+                except TimeoutException as e:
+                    logger.warning(f"{e}. Медленная скорость работы через прокси сервер")
+                finally:
+                    sleep(15)
+    except TimeoutException as e:
+        logger.warning(f"{e}. Медленная скорость работы через прокси сервер")
     except NoSuchElementException as e:
         logger.error(f"Во время парсинга произошла ошибка {e}")
     finally:
