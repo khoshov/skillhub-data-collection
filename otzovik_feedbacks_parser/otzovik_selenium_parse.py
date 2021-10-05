@@ -89,9 +89,9 @@ def parse_school_feedbacks(school: Dict):
             school_feedbacks_url_list, next_page = collect_school_feedbacks_url(browser, next_page)
             sleep(10)
             for url in school_feedbacks_url_list:
-                if url == school.get('latest_review_url'):
-                    next_page = ''
-                    break
+                # if url == school.get('latest_review_url'):
+                #     next_page = ''
+                #     break
                 try:
                     data = fetch_feedback_data(browser, url, school_name)
                     send_feedbacks_data(data)
@@ -112,7 +112,7 @@ def run_feedbacks_parser():
     """ Функция запуска парсинга отзывов по всем школам """
     schools_data = get_schools_list()
     if schools_data:
-        logger.info('Парсер отзывов с otzovik.com начала работу')
+        logger.info('Парсер отзывов с otzovik.com начал работу')
         for school in schools_data:
             if school.get("name") not in BAD_SCHOOL_NAMES:
                 logger.info(f'Начат сбор отзывов с otzovik.com о школе {school.get("name")}')
