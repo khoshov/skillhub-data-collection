@@ -21,7 +21,7 @@ def choose_most_popular_url(search_page_soup_data: BeautifulSoup) -> str:
     """парсинг полученных данных с целью поиска наиболее релевантной ссылки на список отзывов"""
     item_sortable_list = search_page_soup_data.select(".item.sortable")
     # удаляем рекламные ссылки
-    item_sortable_list = [item for item in item_sortable_list if item["data-pid"] != "0"]
+    item_sortable_list = [item for item in item_sortable_list if item["data-reviews"] != "0"]
     # берем первую самую популярную ссылку из найденных
     most_popular_feedbacks_url = 'https://otzovik.com' + item_sortable_list[0].select_one('h3 a')['href']
     most_popular_feedbacks_url = most_popular_feedbacks_url + '?order=date_desc'
@@ -68,10 +68,8 @@ def fetch_feedback_data(url: str) -> Dict:
 def run_feedbacks_parser(query: str = "geekbrains.ru"):
     """запуск парсинга отзывов и направление результатов во внешний API"""
     url_search = f"https://otzovik.com/?search_text={query}&x=0&y=0"
-    """формируем ссылку"""
     next_page = choose_most_popular_url(find_school_feedback_urls(url_search))
-    sleep(5)
-    all_feedbacks = []
+    sleep(10)
     with open('feedbacks_data.csv', 'a', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter='|')
         head = [
@@ -86,12 +84,11 @@ def run_feedbacks_parser(query: str = "geekbrains.ru"):
         writer.writerow(head)
         while next_page:
             school_feedbacks_url_list, next_page = collect_school_feedbacks_url(next_page)
-            sleep(5)
-            all_feedbacks += school_feedbacks_url_list
+            sleep(10)
             for url in school_feedbacks_url_list:
                 data = fetch_feedback_data(url)
                 writer.writerow(data.values())
-                sleep(5)
+                sleep(15)
     # for feedback in all_feedbacks:
     #     send_parse_data(fetch_feedback_data(feedback))
 

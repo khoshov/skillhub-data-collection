@@ -11,7 +11,7 @@ from base_func.utils import convert_to_date
 from settings.logger_settings import logger
 
 
-BAD_SCHOOL_NAMES = ('Курсы с Youtub', 'test')
+BAD_SCHOOL_NAMES = ('Курсы с Youtube', 'test')
 
 
 def get_schools_list() -> Optional[Dict]:

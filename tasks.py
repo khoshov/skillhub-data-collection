@@ -1,7 +1,8 @@
 from celery import Celery
 from celery.schedules import crontab
 
-from settings.urls_config import TUTORTOP_MAIN_PAGE
+from settings.urls_config import GOUVERMENT_SUPPORT_COURSES_URL, TUTORTOP_MAIN_PAGE
+from government_support_courses.parser_support_courses import parse_supported_courses
 from tutortop_parser.tutortop_parser import load_main_page_course_links, load_courses_data_by_category_url
 
 
@@ -16,6 +17,12 @@ def run_tutortop_parser():
         load_courses_data_by_category_url(url, category)
 
 
+@celery_app.task
+def run_government_support_courses():
+    parse_supported_courses(GOUVERMENT_SUPPORT_COURSES_URL)
+
+
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(crontab(minute=0, hour=5, day_of_week=1), run_tutortop_parser.s())
+    sender.add_periodic_task(crontab(minute=0, hour=3, day_of_week=1), run_tutortop_parser.s())
+    sender.add_periodic_task(crontab(minute=0, hour=5, day_of_week=1), run_government_support_courses.s())

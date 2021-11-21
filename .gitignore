@@ -6,7 +6,7 @@
 demo.py
 geekbrains_parser/
 *.csv
-./otzovik_parser.py
+otzovik_feedbacks_parser/
 
 ### macOS ###
 # General
