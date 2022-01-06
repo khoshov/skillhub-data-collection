@@ -34,7 +34,7 @@ def fetch_html(url: str) -> requests.models.Response:
         #     "https": f"{proxy}"
         # }
         # result = requests.get(url, headers=headers, timeout=10)
-        result = requests.get(url, timeout=10)
+        result = requests.get(url, allow_redirects=True, timeout=10)
         if result.status_code == 200:
             logger.info(f"парсинг ссылки {url}")
             return result
