@@ -121,3 +121,7 @@ def run_feedbacks_parser():
         logger.info('Парсер отзывов с otzovik.com закончил работу')
     else:
         logger.error('Не удалось получить список школ из API SkillHub. Парсер отзывов не был запущен')
+
+
+if __name__ == '__main__':
+    run_feedbacks_parser()
