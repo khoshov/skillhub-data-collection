@@ -16,7 +16,7 @@ def load_main_page_course_links(home_page_url: str) -> Dict:
     """ фунция собирает ссылки на разделы с курсами с главной страницы """
     courses_links = {}
     houme_page_soup_data = BeautifulSoup(fetch_html(home_page_url).text, 'lxml')
-    courses_catalog = houme_page_soup_data.select(".submenu__wrap__mark")[0].select("a")
+    courses_catalog = houme_page_soup_data.select(".submenu__wrap__mark")[2].select("a")
     for item in courses_catalog[1:]:
         courses_links[item.get_text()] = item['href']
     return courses_links
