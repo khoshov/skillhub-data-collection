@@ -1,15 +1,14 @@
 import csv
 import re
 from datetime import datetime
-from typing import Dict, List
+from time import sleep
+from typing import Dict
 
 from bs4 import BeautifulSoup
 
 from base_func.http_requests import fetch_html, send_parse_data
 from settings.logger_settings import logger
-
-MONTH = 1
-LESSON = 2
+from settings.mapping import COURSE_DURATION_TYPE
 
 
 @logger.catch
@@ -29,6 +28,7 @@ def load_courses_data_by_category_url(url: str, course_category: str) -> None:
     courses_page_soup_data = BeautifulSoup(fetch_html(url).text, 'lxml')
     fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_category)
     fetch_all_free_courses_data_by_category(courses_page_soup_data, course_category)
+    sleep(15)
 
 
 @logger.catch
@@ -43,7 +43,7 @@ def fetch_all_paid_courses_data_by_category(courses_page_soup_data, course_categ
             "course_price": course_item['data-price'],
             "course_start_date": _render_course_start_date(course_item),
             "course_duration": float(course_item['data-dlitelnost']),
-            "course_duration_type": MONTH,
+            "course_duration_type": COURSE_DURATION_TYPE['MONTH'],
             "course_link": _find_course_url(course_item),
         }
         send_parse_data(course_data)
@@ -61,7 +61,7 @@ def fetch_all_free_courses_data_by_category(courses_page_soup_data, course_categ
             "course_price": None,
             "course_start_date": None,
             "course_duration": f"{course_item['data-dlitelnost']}",
-            "course_duration_type": LESSON,
+            "course_duration_type": COURSE_DURATION_TYPE['LESSON'],
             "course_link": _find_course_url(course_item),
             "course_format": course_item.select_one('.tab-course-col-format_obucheniy').get_text().strip(),
         }

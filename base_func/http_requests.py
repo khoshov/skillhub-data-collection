@@ -24,8 +24,8 @@ def fetch_html(url: str) -> requests.models.Response:
     try:
         headers = {
             'user-agent': ua.random,
-            'Accept': '*/*',
-            'accept-encoding': 'gzip, deflate, br',
+            'Accept': 'text/html',
+            'accept-encoding': 'gzip',
             'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
         }
         # proxy = choice(PROXIES)
