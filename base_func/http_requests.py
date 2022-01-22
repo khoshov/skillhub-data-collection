@@ -24,7 +24,7 @@ def fetch_html(url: str) -> requests.models.Response:
     try:
         headers = {
             'user-agent': ua.random,
-            'Accept': 'text/html',
+            # 'Accept': 'text/html',
             'accept-encoding': 'gzip',
             'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
         }
@@ -33,8 +33,8 @@ def fetch_html(url: str) -> requests.models.Response:
         #     "http": f"{proxy}",
         #     "https": f"{proxy}"
         # }
-        # result = requests.get(url, headers=headers, timeout=10)
-        result = requests.get(url, allow_redirects=True, timeout=10)
+        result = requests.get(url, headers=headers, allow_redirects=True, timeout=10)
+        # result = requests.get(url, allow_redirects=True, timeout=10)
         if result.status_code == 200:
             logger.info(f"парсинг ссылки {url}")
             return result
