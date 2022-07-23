@@ -6,8 +6,8 @@
 demo.py
 geekbrains_parser/
 *.csv
-otzovik_feedbacks_parser/
 test_start.py
+old_code/
 
 ### macOS ###
 # General

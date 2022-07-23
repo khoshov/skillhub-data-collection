@@ -3,11 +3,13 @@ from pprint import pprint
 from time import sleep
 from typing import List, Dict, Optional
 
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
+from selenium.webdriver.common.by import By
 
 from base_func.http_requests import send_feedbacks_data, fetch_html
+from base_func.rucaptcha_api import solve_normal_captcha_api
 from base_func.web_session import start_browser
-from base_func.utils import convert_to_date
+from base_func.date_tools import convert_to_date
 from settings.logger_settings import logger
 
 
@@ -22,22 +24,57 @@ def get_schools_list() -> Optional[Dict]:
     return None
 
 
-def find_school_feedbacks_url(browser, url: str):
+def find_school_feedbacks_url(browser, school_name: str) -> Optional[str]:
     """ Получаем данные поискового get-запроса на главную страницу отзовик.ру """
-    browser.get(url)
+    search_url = f"https://otzovik.com/?search_text={school_name}&x=8&y=10"
+    browser.get(search_url)
+    sleep(3)
     try:
-        warning_message = browser.find_element_by_css_selector('h1').text
+        warning_message = browser.find_element(By.CSS_SELECTOR, 'h1').text
         if warning_message == "Вы робот?":
-            logger.error('https://otzovik.com/ заблокировал соединение. Требуется смена proxy')
-            sleep(60)
+            solve_captcha(browser)
+            # если капча распознана верно браузер будет перенаправлен на главную страницу
+            # повторим попытку поиска
+            sleep(10)
+            browser.get(search_url)
     except NoSuchElementException:
         pass
-    search_result = browser.find_elements_by_css_selector('.item.sortable')
+    except WebDriverException as e:
+        logger.warning(f'Во время работы вебдрайвера возникла ошибка: {e}')
+        browser.close()
+        browser.quit()
+        browser = start_browser()
+        find_school_feedbacks_url(browser, school_name)
+
+    search_result = browser.find_elements_by_css_selector('tr.item.sortable')
     for element in search_result:
         if element.get_attribute('data-reviews') != '0':
-            url = element.find_element_by_css_selector('a.product-name').get_attribute('href')
-            url = url + '?order=date_desc'  # добавляем сортировку по дате
-            return url
+            url_tag = element.find_element(By.CSS_SELECTOR, 'a.product-name')
+            if school_name.lower() in url_tag.text.lower():
+                url = element.find_element(By.CSS_SELECTOR, 'a.product-name').get_attribute('href')
+                url = url + '?order=date_desc'  # добавляем сортировку по дате
+                return url
+    logger.info(f'На сайте отстутствуют отзывы о школе {school_name}')
+    return None
+
+
+def solve_captcha(browser):
+    """
+    Решает капчу на странице блокировки
+    """
+    logger.warning('https://otzovik.com/ заблокировал соединение. Решаем капчу')
+    captcha_image_element = browser.find_element(By.CSS_SELECTOR, 'img')
+    captcha_input_field = browser.find_element(By.CSS_SELECTOR, 'td input[type="text"]')
+    submit_button = browser.find_element(By.CSS_SELECTOR, 'td input[type="submit"')
+    captcha_path = 'captcha.png'
+    captcha_image_element.screenshot(captcha_path)
+    while True:
+        captcha = solve_normal_captcha_api(captcha_path)
+        if captcha:
+            break
+    captcha_input_field.send_keys(captcha)
+    sleep(3)
+    submit_button.click()
 
 
 def collect_school_feedbacks_url(browser, url) -> List:
@@ -49,7 +86,7 @@ def collect_school_feedbacks_url(browser, url) -> List:
     ]
     # ищем на странице ссылку на следующую страницу, если ее нет, то это последняя страница
     try:
-        next_page = browser.find_element_by_css_selector('a.next').get_attribute('href')
+        next_page = browser.find_element(By.CSS_SELECTOR, 'a.next').get_attribute('href')
     except NoSuchElementException:
         next_page = None
     return school_feedbacks_url_list, next_page
@@ -58,11 +95,11 @@ def collect_school_feedbacks_url(browser, url) -> List:
 def fetch_feedback_data(browser, url: str, school_name: str) -> Dict:
     """ Сбор и обработка данных отзыва """
     browser.get(url)
-    feedback_plus = browser.find_element_by_css_selector(".review-plus").text
-    feedback_minus = browser.find_element_by_css_selector(".review-minus").text
-    feedback_description = browser.find_element_by_css_selector(".review-body.description").text
+    feedback_plus = browser.find_element(By.CSS_SELECTOR, '.review-plus').text
+    feedback_minus = browser.find_element(By.CSS_SELECTOR, '.review-minus').text
+    feedback_description = browser.find_element(By.CSS_SELECTOR, '.review-body.description').text
     feedback_description = feedback_description.replace('\n', ' ')
-    feedback_date = browser.find_element_by_css_selector(".review-postdate .tooltip-right").text
+    feedback_date = browser.find_element(By.CSS_SELECTOR, '.review-postdate .tooltip-right').text
     rating: int = len(browser.find_elements_by_css_selector("div.product-rating.tooltip-right .icons.icon-star-1"))
     feedback_data = {
         'school': school_name,
@@ -77,18 +114,20 @@ def fetch_feedback_data(browser, url: str, school_name: str) -> Dict:
     return feedback_data
 
 
-def parse_school_feedbacks(school: Dict, parse_all_feedbacks: bool = False):
+def parse_school_feedbacks(browser, school: Dict, parse_all_feedbacks: bool = False):
     """ Парсинг отзывов о школе и направление обработанных данных API SkillHub """
     school_name = school.get('name')
-    logger.info(f'Начат сбор отзывов с otzovik.com о школе {school_name}')
+    logger.info(f'Старт сбора отзывов с otzovik.com о школе {school_name}')
     try:
-        browser = start_browser()
-        search_url = f"https://otzovik.com/?search_text={school_name}&x=8&y=10"
-        sleep(10)
-        next_page = find_school_feedbacks_url(browser, search_url)
+        sleep(5)
+        next_page = find_school_feedbacks_url(browser, school_name)
+        if not next_page:
+            logger.info(f'На http://otzovik.com отсутствуют отзывы о шкоел {school_name}')
+            return
+
         while next_page:
             school_feedbacks_url_list, next_page = collect_school_feedbacks_url(browser, next_page)
-            sleep(10)
+            sleep(5)
             for url in school_feedbacks_url_list:
                 if not parse_all_feedbacks and url == school.get('latest_review_url'):
                     next_page = ''
@@ -97,17 +136,14 @@ def parse_school_feedbacks(school: Dict, parse_all_feedbacks: bool = False):
                     data = fetch_feedback_data(browser, url, school_name)
                     send_feedbacks_data(data)
                 except TimeoutException as e:
-                    logger.warning(f"{e}. Медленная скорость работы через прокси сервер")
+                    logger.warning(f"{e}. Медленная скорость работы сети")
                 finally:
-                    sleep(15)
+                    sleep(10)
+        logger.info(f'Завершен сбор отзывов с otzovik.com о школе {school_name}')
     except TimeoutException as e:
-        logger.warning(f"{e}. Медленная скорость работы через прокси сервер")
+        logger.warning(f"{e}. Медленная скорость работы сети")
     except NoSuchElementException as e:
         logger.error(f"Во время парсинга произошла ошибка {e}")
-    finally:
-        browser.close()
-        browser.quit()
-        logger.info(f'Завершен сбор отзывов с otzovik.com о школе {school_name}')
 
 
 def run_feedbacks_parser(schools_data: List[Dict], school_name: Optional[str] = None):
@@ -127,15 +163,21 @@ def run_feedbacks_parser(schools_data: List[Dict], school_name: Optional[str] = 
             print('You choose the incorrect crawler mode. Try again.')
             continue
         break
-    if school_name:
-        logger.info(f'Парсер отзывов о школе {school_name} с otzovik.com начал работу')
-        school = next((item for item in schools_data if item["name"] == school_name), None)
-        parse_school_feedbacks(school, parse_all_feedbacks=bool(crawler_mode))
-    else:
-        logger.info('Парсер всех отзывов с otzovik.com начал работу')
-        for school in schools_data:
-            if school.get("name") not in BAD_SCHOOL_NAMES:
-                parse_school_feedbacks(school, parse_all_feedbacks=bool(crawler_mode))
+
+    browser = start_browser()
+    try:
+        if school_name:
+            logger.info(f'Парсер отзывов о школе {school_name} с otzovik.com начал работу')
+            school = next((item for item in schools_data if item["name"] == school_name), None)
+            parse_school_feedbacks(browser, school, parse_all_feedbacks=bool(crawler_mode))
+        else:
+            logger.info('Парсер всех отзывов с otzovik.com начал работу')
+            for school in schools_data:
+                if school.get("name") not in BAD_SCHOOL_NAMES:
+                    parse_school_feedbacks(browser, school, parse_all_feedbacks=bool(crawler_mode))
+    finally:
+        browser.close()
+        browser.quit()
     logger.info('Парсер отзывов с otzovik.com закончил работу')
 
 
