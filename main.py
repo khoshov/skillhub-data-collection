@@ -1,26 +1,10 @@
 
 
 from otzovik_feedbacks_parser.otzovik_selenium_parse import run_otzovic_manual_parser
-from old_code.otzovik_parser import run_feedbacks_parser
 from tasks import run_tutortop_parser
 
-# from irecommend_feedbacks_parser.irecomend_requests_parser import test_irecomend
-
-from base_func.rucaptcha_api import solve_normal_captcha_api
 
 if __name__ == '__main__':
-
-    # url = 'http://otzovik.com/scripts/captcha/index.php?rand=5608674'
-    # r = requests.get(url)
-    # captcha_path = 'captcha.jpeg'
-    # c = solve_normal_captcha(captcha_path)
-    # print(c)
-    
-    # run_feedbacks_parser()
-    
-    # name = 'geekbrains'
-    # test_irecomend(name)
-
     parsers = {
         1: run_tutortop_parser,
         2: run_otzovic_manual_parser
