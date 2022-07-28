@@ -8,6 +8,7 @@ geekbrains_parser/
 *.csv
 test_start.py
 old_code/
+captcha.png
 
 ### macOS ###
 # General

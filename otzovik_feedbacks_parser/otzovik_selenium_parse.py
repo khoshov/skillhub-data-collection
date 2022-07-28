@@ -5,6 +5,7 @@ from typing import List, Dict, Optional
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
+import undetected_chromedriver as uc
 
 from base_func.http_requests import send_feedbacks_data, fetch_html
 from base_func.rucaptcha_api import solve_normal_captcha_api
@@ -27,24 +28,7 @@ def get_schools_list() -> Optional[Dict]:
 def find_school_feedbacks_url(browser, school_name: str) -> Optional[str]:
     """ Получаем данные поискового get-запроса на главную страницу отзовик.ру """
     search_url = f"https://otzovik.com/?search_text={school_name}&x=8&y=10"
-    browser.get(search_url)
-    sleep(3)
-    try:
-        warning_message = browser.find_element(By.CSS_SELECTOR, 'h1').text
-        if warning_message == "Вы робот?":
-            solve_captcha(browser)
-            # если капча распознана верно браузер будет перенаправлен на главную страницу
-            # повторим попытку поиска
-            sleep(10)
-            browser.get(search_url)
-    except NoSuchElementException:
-        pass
-    except WebDriverException as e:
-        logger.warning(f'Во время работы вебдрайвера возникла ошибка: {e}')
-        browser.close()
-        browser.quit()
-        browser = start_browser()
-        find_school_feedbacks_url(browser, school_name)
+    browser = open_url(browser, search_url)
 
     search_result = browser.find_elements_by_css_selector('tr.item.sortable')
     for element in search_result:
@@ -58,28 +42,9 @@ def find_school_feedbacks_url(browser, school_name: str) -> Optional[str]:
     return None
 
 
-def solve_captcha(browser):
-    """
-    Решает капчу на странице блокировки
-    """
-    logger.warning('https://otzovik.com/ заблокировал соединение. Решаем капчу')
-    captcha_image_element = browser.find_element(By.CSS_SELECTOR, 'img')
-    captcha_input_field = browser.find_element(By.CSS_SELECTOR, 'td input[type="text"]')
-    submit_button = browser.find_element(By.CSS_SELECTOR, 'td input[type="submit"')
-    captcha_path = 'captcha.png'
-    captcha_image_element.screenshot(captcha_path)
-    while True:
-        captcha = solve_normal_captcha_api(captcha_path)
-        if captcha:
-            break
-    captcha_input_field.send_keys(captcha)
-    sleep(3)
-    submit_button.click()
-
-
 def collect_school_feedbacks_url(browser, url) -> List:
     """ Парсинг ссылок на отзывы о школе и ссылки на следующую страницу с отзывами """
-    browser.get(url)
+    browser = open_url(browser, url)
     feedbacks_urls = browser.find_elements_by_css_selector(".item-right h3 .review-title")
     school_feedbacks_url_list = [
         item.get_attribute('href') for item in feedbacks_urls
@@ -94,7 +59,7 @@ def collect_school_feedbacks_url(browser, url) -> List:
 
 def fetch_feedback_data(browser, url: str, school_name: str) -> Dict:
     """ Сбор и обработка данных отзыва """
-    browser.get(url)
+    browser = open_url(browser, url)
     feedback_plus = browser.find_element(By.CSS_SELECTOR, '.review-plus').text
     feedback_minus = browser.find_element(By.CSS_SELECTOR, '.review-minus').text
     feedback_description = browser.find_element(By.CSS_SELECTOR, '.review-body.description').text
@@ -204,4 +169,48 @@ def run_otzovic_manual_parser():
 
     if school_name_index == 0:
         run_feedbacks_parser(schools_data)
-    run_feedbacks_parser(schools_data, school_names_in_db.get(school_name_index))
+    else:
+        run_feedbacks_parser(schools_data, school_names_in_db.get(school_name_index))
+
+
+def open_url(browser: uc.Chrome, url: str):
+    """ Открывает страницу по ссылке, если соединение блокируется - решает капчу """
+    browser.get(url)
+    sleep(3)
+    try:
+        warning_message = browser.find_element(By.CSS_SELECTOR, 'h1').text
+        if warning_message == "Вы робот?":
+            solve_captcha(browser)
+            # если капча распознана верно браузер будет перенаправлен на главную страницу
+            # повторим попытку поиска
+            sleep(2)
+            browser.get(url)
+            sleep(3)
+    except NoSuchElementException:
+        pass
+    except WebDriverException as e:
+        logger.warning(f'Во время работы вебдрайвера возникла ошибка: {e}')
+        browser.close()
+        browser.quit()
+        browser = start_browser()
+        open_url(browser, url)
+    return browser
+
+
+def solve_captcha(browser):
+    """
+    Решает капчу на странице блокировки
+    """
+    logger.warning('https://otzovik.com/ заблокировал соединение. Решаем капчу')
+    captcha_image_element = browser.find_element(By.CSS_SELECTOR, 'img')
+    captcha_input_field = browser.find_element(By.CSS_SELECTOR, 'td input[type="text"]')
+    submit_button = browser.find_element(By.CSS_SELECTOR, 'td input[type="submit"')
+    captcha_path = 'captcha.png'
+    captcha_image_element.screenshot(captcha_path)
+    while True:
+        captcha = solve_normal_captcha_api(captcha_path)
+        if captcha:
+            break
+    captcha_input_field.send_keys(captcha)
+    sleep(3)
+    submit_button.click()
