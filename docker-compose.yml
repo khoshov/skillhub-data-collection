@@ -10,3 +10,7 @@ services:
       - .env
     volumes:
       - ./:/app
+    logging:
+      options:
+        max-size: "100m"
+        max-file: "2"
