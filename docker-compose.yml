@@ -1,0 +1,12 @@
+version: "3.4"
+
+services:
+
+  skillhub-parsers:
+    build: .
+    container_name: skillhub-parsers
+    tty: true
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
