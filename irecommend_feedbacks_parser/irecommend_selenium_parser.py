@@ -136,7 +136,7 @@ def parse_school_feedbacks(browser, school: Dict, parse_all_feedbacks: bool = Fa
                 except TimeoutException as e:
                     logger.warning(f"{e}. Медленная скорость работы сети")
                 finally:
-                    sleep(10)
+                    sleep(5)
         logger.info(f'Завершен сбор отзывов с irecomend.ru о школе {school_name}')
     except TimeoutException as e:
         logger.warning(f"{e}. Медленная скорость работы сети")
