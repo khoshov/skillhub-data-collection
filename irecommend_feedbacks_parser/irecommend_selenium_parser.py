@@ -68,13 +68,11 @@ def collect_school_feedbacks_url(browser, url: str) -> Tuple:
     # ищем на странице ссылку на следующую страницу, если ее нет, то это последняя страница
     try:
         pagination = browser.find_element(By.CSS_SELECTOR, '.pager')
-        page_current = int(pagination.find_element(By.CSS_SELECTOR, '.pager-current').text)
-        page_last = (pagination.find_element(By.CSS_SELECTOR, '.last').text)
-        if page_current == page_last:
-            next_page = None
-        else:
-            # на сайте нумерация страниц в url идет с нуля
-            next_page = re.sub(r"page=\d{1,2}", rf"page={page_current}", url)
+        page_current = pagination.find_element(By.CSS_SELECTOR, '.pager-current').text
+        # проверяем наличие ссылки на последюнюю страницу, если ее нет, то станица текущая страница - последняя
+        page_last = pagination.find_element(By.CSS_SELECTOR, '.pager-last')
+        # на сайте нумерация страниц в url идет с нуля
+        next_page = re.sub(r"page=\d{1,2}", rf"page={page_current}", url)
     except NoSuchElementException:
         next_page = None
     return school_feedbacks_url_list, next_page
