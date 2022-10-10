@@ -1,28 +1,32 @@
 
+import os
 
-from otzovik_feedbacks_parser.otzovik_selenium_parse import run_otzovic_manual_parser
-from tasks import run_tutortop_parser
+from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
+from apscheduler.schedulers.blocking import BlockingScheduler
+from pytz import timezone
+
+from otzovik_feedbacks_parser.otzovik_selenium_parser import run_otzovik_update_data_job
+
+
+def listener(event):
+    if not event.exception:
+        job = scheduler.get_job(event.job_id)
+        print(f"зад{}")
+        print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
 
 if __name__ == '__main__':
-    parsers = {
-        1: run_tutortop_parser,
-        2: run_otzovic_manual_parser
-    }
-    while True:
-        parser_type = input(
-            'Choose crawler: \n'
-            '1 - Tutortop parser\n'
-            '2 - Otzovic.ru parser\n'
-            ''
-        )
-        if not parser_type.isdigit():
-            print('Index must be the digit')
-            continue
-        parser_type = int(parser_type)
-        if parser_type not in (1, 2):
-            print('You choose the incorrect parser type. Try again.')
-            continue
-        break
-    # run parser
-    parsers.get(parser_type)()
+    scheduler = BlockingScheduler()
+    scheduler.configure(timezone=timezone('Europe/Moscow'))
+    scheduler.add_listener(listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+    scheduler.add_job(
+        run_otzovik_update_data_job,
+        'cron',
+        hour='3',
+        minute='00',
+        id="otzovik_parser")
+
+    try:
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
+        pass

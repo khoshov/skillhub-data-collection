@@ -39,7 +39,6 @@ def start_browser():
         options.headless = True
         options.add_argument('--no-sandbox')
     options.page_load_strategy = 'eager'  # ожидание основной загрузки страницы
-
     service = Service(executable_path=os.getenv('WEBDRIVER_PATH'))
 
     browser = uc.Chrome(
