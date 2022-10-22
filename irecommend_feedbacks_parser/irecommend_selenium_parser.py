@@ -1,4 +1,3 @@
-import csv
 import re
 import os
 from pprint import pprint
@@ -17,6 +16,7 @@ from settings.logger_settings import logger
 
 
 BAD_SCHOOL_NAMES = ('Курсы с Youtube', 'test')
+BAD_SEARCH_NAMES = ('часы')
 
 
 def run_irecommend_update_data_job():
@@ -47,8 +47,10 @@ def find_school_feedbacks_url(browser, school_name: str) -> Optional[str]:
 
     try:
         search_result = browser.find_element_by_css_selector('.srch-result-nodes .title a')
-        # проверяем вхождения названия школы в поисковый результат
-        if school_name.lower() in search_result.text.lower():
+        # проверяем вхождения названия школы в поисковый результат и
+        # отсутствия наличия слов из похожих - не релевантных результатах поиска
+        if school_name.lower() in search_result.text.lower() and not any(
+                item in search_result.text.lower() for item in BAD_SEARCH_NAMES):
             url = search_result.get_attribute('href')
             url = url + '?page=0&new=1'  # номер страницы добавляем сортировку по дате
             return url
@@ -69,9 +71,10 @@ def collect_school_feedbacks_url(browser, url: str) -> Tuple:
     try:
         pagination = browser.find_element(By.CSS_SELECTOR, '.pager')
         page_current = pagination.find_element(By.CSS_SELECTOR, '.pager-current').text
-        # проверяем наличие ссылки на последюнюю страницу, если ее нет, то станица текущая страница - последняя
+        # проверяем наличие ссылки на последюнюю страницу, если ее нет, то текущая страница - последняя
         page_last = pagination.find_element(By.CSS_SELECTOR, '.pager-last')
-        # на сайте нумерация страниц в url идет с нуля
+        # на сайте нумерация страниц в url идет с нуля, поэтому для перехода на следующую страницу
+        # подставляем цифровое значение текущей страницы
         next_page = re.sub(r"page=\d{1,2}", rf"page={page_current}", url)
     except NoSuchElementException:
         next_page = None
@@ -130,9 +133,6 @@ def parse_school_feedbacks(browser, school: Dict, parse_all_feedbacks: bool = Fa
                 try:
                     data = fetch_feedback_data(browser, url, school_name)
                     send_feedbacks_data(data)
-                    # with open('irecimend_data.csv', 'a', encoding='utf-8') as f:
-                    #     writer = csv.writer(f, delimiter='|')
-                    #     writer.writerow(data.values())
                 except TimeoutException as e:
                     logger.warning(f"{e}. Медленная скорость работы сети")
                 finally:
@@ -210,7 +210,10 @@ def run_irecommend_manual_parser():
 
 
 def open_url(browser: uc.Chrome, url: str):
-    """ Открывает страницу по ссылке, если соединение блокируется - решает капчу """
+    """
+    Функция заготовка, пока капчи на сайте нет
+    Открывает страницу по ссылке, если соединение блокируется - решает капчу
+    """
     browser.get(url)
     sleep(3)
     try:
@@ -235,6 +238,7 @@ def open_url(browser: uc.Chrome, url: str):
 
 def solve_captcha(browser):
     """
+    заготовка под функцию
     Решает капчу на странице блокировки
     """
     logger.warning('https://irecomend.ru/ заблокировал соединение. Решаем капчу')

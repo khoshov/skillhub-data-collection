@@ -17,7 +17,7 @@ from settings.logger_settings import logger
 BAD_SCHOOL_NAMES = ('Курсы с Youtube', 'test')
 
 
-def run_itzovik_update_data_job():
+def run_otzovik_update_data_job():
     """ Задача для автоматического обновления последних отзывов во всех школах """
     schools_data = get_schools_list()
     browser = start_browser()
