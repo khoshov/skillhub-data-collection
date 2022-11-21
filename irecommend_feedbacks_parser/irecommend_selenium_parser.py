@@ -1,5 +1,4 @@
 import re
-import os
 from pprint import pprint
 from time import sleep
 from typing import List, Dict, Optional, Tuple
@@ -8,7 +7,8 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException,
 from selenium.webdriver.common.by import By
 import undetected_chromedriver as uc
 
-from base_func.http_requests import send_feedbacks_data, fetch_html
+from base_func.api_skillhub import get_schools_list
+from base_func.http_requests import send_feedbacks_data
 from base_func.rucaptcha_api import solve_normal_captcha_api
 from base_func.web_session import start_browser
 from base_func.date_tools import convert_to_date
@@ -30,14 +30,6 @@ def run_irecommend_update_data_job():
     browser.close()
     browser.quit()
     logger.info('Парсер закончил обновлять отзывы с irecommend.com')
-
-
-def get_schools_list() -> Optional[Dict]:
-    """ Получаем список школ и дату последенго отзыва, записанного в базе """
-    response = fetch_html(os.getenv('SKILLHUB_GET_SCHOOLS')).json()
-    if response:
-        return response.get('results')
-    return None
 
 
 def find_school_feedbacks_url(browser, school_name: str) -> Optional[str]:

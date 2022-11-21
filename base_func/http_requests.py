@@ -30,7 +30,6 @@ def fetch_html(url: str) -> requests.models.Response:
     try:
         headers = {
             'user-agent': USER_AGENT,
-            # 'Accept': 'text/html',
             'accept-encoding': 'gzip',
             'accept-language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
         }
@@ -42,7 +41,7 @@ def fetch_html(url: str) -> requests.models.Response:
         result = requests.get(url, headers=headers, allow_redirects=True, timeout=10)
         # result = requests.get(url, allow_redirects=True, timeout=10)
         if result.status_code == 200:
-            logger.info(f"парсинг ссылки {url}")
+            logger.info(f"{url} - ссылка доступна")
             return result
         else:
             logger.error(f'Ссылка {url} недоступна, status code {result.status_code}')
@@ -52,7 +51,7 @@ def fetch_html(url: str) -> requests.models.Response:
         return None
 
 
-def  create_cloudflare_scrapper():
+def create_cloudflare_scrapper():
     """создает scrapper с настройками для парсинга сайтов с защитой cloudflare
 
     Returns:
@@ -144,6 +143,8 @@ def send_feedbacks_data(feedbacks_data: Dict) -> None:
             logger.info(f"Отзыв о школе {feedbacks_data.get('school')} "
                         f"url={feedbacks_data.get('feedback_url')} успешно направлены в API")
         else:
-            logger.error(f'При направлении данных возникла ошибка: {result.status_code}')
+            logger.error(f'При направлении данных возникла ошибка: {result.status_code}. \n'
+                         f'Описание ошибки {result.json()} \n'
+                         f'Направляемые данные {feedbacks_data}')
     except requests.RequestException as e:
         logger.error(f'Отсутствует доступ к API: {e}')
