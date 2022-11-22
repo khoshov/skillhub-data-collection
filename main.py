@@ -8,6 +8,7 @@ from pytz import timezone
 from otzovik_feedbacks_parser.otzovik_selenium_parser import run_otzovik_update_data_job
 from irecommend_feedbacks_parser.irecommend_selenium_parser import run_irecommend_update_data_job
 from mooc_feedbacks_parser.mooc_requests_parser import run_mooc_parser
+from yell_feedbacks_parser.yell_requests_parser import run_yell_parser
 
 
 def listener(event):
@@ -44,7 +45,15 @@ if __name__ == '__main__':
         'cron',
         hour='0',
         minute='10',
-        id="irecomend_parser")
+        id="mooc_parser")
+    # запуск парсера yell через requests
+    # каждый день в 00 час 30 минут ночи
+    scheduler.add_job(
+        run_yell_parser,
+        'cron',
+        hour='0',
+        minute='30',
+        id="yell_parser")
 
     try:
         scheduler.start()

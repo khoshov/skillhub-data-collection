@@ -1,6 +1,5 @@
 """ Парсер отзывов с сайте mooc.ru через requests """
 
-import csv
 from typing import Optional
 
 from bs4 import BeautifulSoup
@@ -90,7 +89,7 @@ def find_feedback_date(feedback_element: Tag) -> Optional[str]:
     return feedback_date
 
 
-def find_feedback_rating(feedback_element: Tag) -> Optional[float]:
+def find_feedback_rating(feedback_element: Tag) -> Optional[int]:
     """ Находит в данные о рейтинге отзыва """
     raiting_stars = feedback_element.select_one('.rating')
     if len(raiting_stars.select('i.fas')) == 0:

@@ -1,5 +1,4 @@
 """ Содержит функции для взаимодействия с API SkillHub """
-import json
 import os
 from typing import Optional
 
