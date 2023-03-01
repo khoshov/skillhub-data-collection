@@ -8,6 +8,7 @@ from pytz import timezone
 from otzovik_feedbacks_parser.otzovik_selenium_parser import run_otzovik_update_data_job
 from irecommend_feedbacks_parser.irecommend_selenium_parser import run_irecommend_update_data_job
 from mooc_feedbacks_parser.mooc_requests_parser import run_mooc_parser
+from two_gis_feedbacks_parser.two_gis_requests_parser import run_2gis_parser
 from yell_feedbacks_parser.yell_requests_parser import run_yell_parser
 
 
@@ -29,7 +30,7 @@ if __name__ == '__main__':
         'cron',
         hour='3',
         minute='00',
-        id="otzovik_parser")
+        id="otzovik_reviews_parser")
     # запуск irecomend через Selenium
     # каждый день в 1 час ночи
     scheduler.add_job(
@@ -37,7 +38,7 @@ if __name__ == '__main__':
         'cron',
         hour='1',
         minute='00',
-        id="irecomend_parser")
+        id="irecomend_reviews_parser")
     # запуск парсера mooc через requests
     # каждый день в 00 час 10 минут ночи
     scheduler.add_job(
@@ -45,15 +46,23 @@ if __name__ == '__main__':
         'cron',
         hour='0',
         minute='10',
-        id="mooc_parser")
-    # запуск парсера yell через requests
+        id="mooc_reviews_parser")
+    # запуск парсера 2gis через requests
     # каждый день в 00 час 30 минут ночи
+    scheduler.add_job(
+        run_2gis_parser,
+        'cron',
+        hour='0',
+        minute='30',
+        id="2gis_reviews_parser")
+    # запуск парсера yell через requests
+    # каждый день в 00 час 45 минут ночи
     scheduler.add_job(
         run_yell_parser,
         'cron',
         hour='0',
-        minute='30',
-        id="yell_parser")
+        minute='45',
+        id="yell_reviews_parser")
 
     try:
         scheduler.start()

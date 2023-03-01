@@ -51,6 +51,7 @@ def get_school_reviews_url(school_name: str) -> Optional[str]:
 
 
 def get_school_reviews(school_reviews_url: str, school_name: str):
+    """ Собирает отзывы о школе с переданной страницы """
     response = fetch_html(school_reviews_url)
     if response:
         soup = bs(response.content, 'lxml')

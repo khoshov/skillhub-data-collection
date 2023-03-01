@@ -38,7 +38,7 @@ def fetch_html(url: str) -> requests.models.Response:
         #     "http": f"{proxy}",
         #     "https": f"{proxy}"
         # }
-        result = requests.get(url, headers=headers, allow_redirects=True, timeout=10)
+        result = requests.get(url, headers=headers, allow_redirects=True, timeout=30)
         # result = requests.get(url, allow_redirects=True, timeout=10)
         if result.status_code == 200:
             logger.info(f"{url} - ссылка доступна")
@@ -46,8 +46,8 @@ def fetch_html(url: str) -> requests.models.Response:
         else:
             logger.error(f'Ссылка {url} недоступна, status code {result.status_code}')
             return None
-    except(requests.RequestException):
-        logger.error(f'Страница не доступна url={url}, проверьте интернет соединение')
+    except requests.RequestException as e:
+        logger.error(f'Страница не доступна url={url}, проверьте интернет соединение. Error {e}')
         return None
 
 
